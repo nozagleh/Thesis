@@ -1,0 +1,112 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<style type="text/css">
+			*{margin:0;padding:0; box-sizing: border-box;}
+			.wrapper{
+				width: 1280px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			.left,.right{ width: 50%; text-align: center; padding: 10px; }
+			.left{ float:left; }
+			.right{ float:right; }
+			.left button, .right button { display: block; width: 25%; margin-left: auto; margin-right: auto; margin-bottom: 5px; padding: 5px; }
+			.left input, .right input, .left label, .right label {margin-left: 5px; vertical-align: middle;}
+
+			.wide{ width: 100%; text-align: center; }
+			.wide input { line-height: 2em; font-size: 1.2em; }
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="left">
+				<button id="start-graphql">Start GraphQL Test</button>
+				<input name="graphql-radio" type="radio" value="0" checked="checked"><label>All Users</label></input>
+				<input name="graphql-radio" type="radio" value="1"><label>Single User</label></input>
+				<input name="graphql-radio" type="radio" value="2"><label>Email Fields Only</label></input>
+			</div>
+			<div class="right">
+				<button id="start-rest">Start REST API Test</button>
+				<input name="rest-radio" type="radio" value="0" checked="checked"><label>All Users</label></input>
+				<input name="rest-radio" type="radio" value="1"><label>Single User</label></input>
+				<input name="rest-radio" type="radio" value="2"><label>Email Fields Only</label></input>
+			</div>
+
+		<div class="wide">
+			<input id="iteration" name="iteration" placeholder="Nr. of iterations" type="text" />
+			<span id="test-nr"></span>
+		</div>
+		</div>
+		<script type="text/javascript">
+			var CONST_ITERATIONS = 0;
+			var CONST_URL = '';
+			var arr = new Array();
+
+			var url_array = [];
+			url_array[0] = ['http://localhost:4000/graphql?query={people{id,firstName,lastName,email}}', 'http://localhost:4000/graphql?query={people(id:4){id,firstName,lastName,email}}', 'http://localhost:4000/graphql?query={people{email}}'];
+			url_array[1] = ['http://localhost:4000/rest/users', 'http://localhost:4000/rest/users/4/', 'http://localhost:4000/rest/users'];
+
+			$(function(){
+
+				$("#start-graphql").on('click',function(){
+					toggleButton(this, true);
+					toggleButton($('#start-rest'), true);
+					arr = [];
+					$('#results').text('');
+					var t = $('#iteration').val();
+					CONST_ITERATIONS = t;
+					CONST_URL = url_array[0][$('input[name=graphql-radio]:checked').val()];
+					test();
+					
+				});
+
+				$("#start-rest").on('click',function(){
+					toggleButton(this, true);
+					toggleButton($('#start-graphql'), true);
+					arr = [];
+					$('#results').text('');
+					var t = $('#iteration').val();
+					CONST_ITERATIONS = t;
+					CONST_URL = url_array[1][$('input[name=rest-radio]:checked').val()];
+					test();
+					
+				});
+				
+			});
+			var counter = 0;
+			var test = function() {
+				var left = Math.round((counter / CONST_ITERATIONS) * 100);
+				$('#test-nr').text( left + '% complete');
+				var url = CONST_URL;
+				var timer1 = new Date().getTime();
+				$.ajax({
+					url: url,
+					dataType: "json",
+					method: "GET"
+				}).done(function(data){
+					var timer2 = new Date().getTime();
+					var total_time = timer2 - timer1;
+					arr.push( (counter + 1) + '#' + timer1 + '#' + timer2 + '#' + total_time + '#' + url + '<br>');
+					if ( counter < CONST_ITERATIONS - 1 ){
+						counter++;
+						setTimeout(test, 500);
+					}else {
+						counter++;
+						$('#test-nr').text( Math.round((counter / CONST_ITERATIONS) * 100) + '% complete');
+						counter = 0;
+						$('#results').html(arr);
+						toggleButton($('#start-graphql'));
+						toggleButton($('#start-rest'));
+					}
+				});
+
+			}
+
+			function toggleButton($button, $enable = false){
+				$($button).prop('disabled', $enable);
+			}
+		</script>
+		<div id="results"></div>
+	</body>
+</html>
