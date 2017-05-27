@@ -101,22 +101,38 @@ const Order_has_Product = Connection.define('order_has_product', {
 });
 
 // Table relations.
-//Person.hasMany(Order);
-//Order.belongsTo(Person);
+Person.hasMany(Order, {foreignKey: 'fk_customer', as: 'Order'});
+Order.belongsTo(Person, {foreignKey: 'fk_customer', as: 'Customer'});
+Order.belongsToMany(Product, {foreignKey: 'fk_order', through: Order_has_Product});
+Product.belongsToMany(Order, {foreignKey: 'fk_product', through: Order_has_Product});
+
+Order_has_Product.belongsTo(Order, {foreignKey: 'fk_order'});
+Order_has_Product.belongsTo(Product, {foreignKey: 'fk_product'});
 
 
 // Add a Faker seed number for a consistent dataset.
 Faker.seed(42);
-
+//Connection.sync();
 // Add some Faker test data to the database.
+/*
 Connection.sync({force: false}).then(()=>{
-  /*_.times(10000, ()=>{
+  _.times(10000, ()=>{
     return Person.create({
       alias: Faker.internet.userName(),
       password: Faker.internet.password(),
       firstName: Faker.name.firstName(),
       lastName: Faker.name.lastName(),
       email: Faker.internet.email()
+    });
+  });
+
+  _.times(50000, ()=>{
+    var randnr = Math.floor(Math.random() * 4000) + 1;
+    return Product.create({
+      product_name: Faker.random.words(),
+      product_price: Faker.random.number(),
+      stock_available: randnr,
+      product_description: Faker.lorem.sentences()
     });
   });
 
@@ -130,16 +146,6 @@ Connection.sync({force: false}).then(()=>{
     });
   });
 
-  _.times(50000, ()=>{
-    var randnr = Math.floor(Math.random() * 4000) + 1;
-    return Product.create({
-      product_name: Faker.random.words(),
-      product_price: Faker.random.number(),
-      stock_available: randnr,
-      product_description: Faker.lorem.sentences()
-    });
-  });*/
-
   _.times(16000, ()=>{
     var rand1 = Math.floor(Math.random() * 50000) + 1;
     var rand2 = Math.floor(Math.random() * 8000) + 1;
@@ -148,6 +154,6 @@ Connection.sync({force: false}).then(()=>{
       fk_order: rand2
     });
   });
-});
+});*/
 
 export default Connection;
